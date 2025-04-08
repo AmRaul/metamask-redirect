@@ -11,7 +11,9 @@
 
         // Если ссылку нашли, редиректим на MetaMask
         if (deepLink) {
-            window.location.href = decodeURIComponent(deepLink); // Декодируем ссылку перед редиректом
+           setTimeout(function() {
+               window.location.href = decodeURIComponent(deepLink);
+           }, 100); // Декодируем ссылку перед редиректом
         } else {
             console.log("Ошибка: Не указан deep-link")
         }
