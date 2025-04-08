@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to MetaMask...</title>
+    <script>
+        // Получаем параметр из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const deepLink = urlParams.get('link');
+
+        // Если ссылку нашли, редиректим на MetaMask
+        if (deepLink) {
+            window.location.href = decodeURIComponent(deepLink);
+        } else {
+            document.body.innerHTML = '<h1>Ошибка: Не указан deep-link</h1>';
+        }
+    </script>
+</head>
+<body>
+    <h1>Пожалуйста, подождите, идет перенаправление...</h1>
+</body>
+</html>
+
