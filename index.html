@@ -13,7 +13,7 @@
         if (deepLink) {
             window.location.href = decodeURIComponent(deepLink); // Декодируем ссылку перед редиректом
         } else {
-            document.body.innerHTML = '<h1>Ошибка: Не указан deep-link</h1>';
+            console.log("Ошибка: Не указан deep-link")
         }
     </script>
 </head>
