@@ -11,7 +11,7 @@
 
         // Если ссылку нашли, редиректим на MetaMask
         if (deepLink) {
-            window.location.href = encodeURIComponent(deepLink);
+            window.location.href = decodeURIComponent(deepLink);
         } else {
             document.body.innerHTML = '<h1>Ошибка: Не указан deep-link</h1>';
         }
