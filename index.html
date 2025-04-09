@@ -3,22 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to MetaMask...</title>
-    <script>
-        // Получаем параметр из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const deepLink = urlParams.get('link');
-
-        // Если ссылку нашли, редиректим на MetaMask
-        if (deepLink) {
-           setTimeout(function() {
-               window.location.href = decodeURIComponent(deepLink);
-           }, 100); // Декодируем ссылку перед редиректом
-        } else {
-            console.log("Ошибка: Не указан deep-link")
-        }
-    </script>
+    <title>Купить NFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@latest/dist/umd/index.min.js"></script>
 </head>
 <body>
+    <h1>Купить NFT</h1>
+    <p>Контракт: <span id="contract-address"></span></p>
+    <p>Цена: <span id="price"></span> ETH</p>
+    <button id="connect-button">Подключить кошелек и купить</button>
+
+    <script>
+        // Извлекаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const contractAddress = urlParams.get('contract');
+        const price = urlParams.get('price');
+        const abi = urlParams.get('abi');
+
+        // Отображаем данные на странице
+        document.getElementById('contract-address').innerText = contractAddress;
+        document.getElementById('price').innerText = price;
+
+        // Инициализация WalletConnect с Alchemy как провайдер
+        const provider = new WalletConnectProvider({
+            rpc: {
+                42161: `https://arb-mainnet.g.alchemy.com/v2/U6bI09Ls6yJ5uv6N8jT0CU-SR_O4hHlz` // Указываем Alchemy API URL для Arbitrum
+            },
+            chainId: 42161 // Arbitrum Mainnet
+        });
+
+        const web3 = new Web3(provider);
+
+        document.getElementById('connect-button').onclick = async () => {
+            await provider.enable(); // Подключаем кошелек
+            const accounts = await web3.eth.getAccounts();
+            console.log("Connected account:", accounts[0]);
+
+            // Создаем контракт
+            const contract = new web3.eth.Contract(JSON.parse(abi), contractAddress);
+
+            // Отправляем транзакцию
+            await contract.methods.buyNFT().send({
+                from: accounts[0],
+                value: web3.utils.toWei(price, 'ether')
+            });
+
+            alert("Транзакция успешна!");
+        };
+    </script>
 </body>
 </html>
