@@ -1,24 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to MetaMask...</title>
-    <script>
-        // Получаем параметр из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const deepLink = urlParams.get('link');
-
-        // Если ссылку нашли, редиректим на MetaMask
-        if (deepLink) {
-           setTimeout(function() {
-               window.location.href = decodeURIComponent(deepLink);
-           }, 100); // Декодируем ссылку перед редиректом
-        } else {
-            console.log("Ошибка: Не указан deep-link")
-        }
-    </script>
+  <meta charset="UTF-8">
+  <title>Buy NFT</title>
+  <script src="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js"></script>
 </head>
 <body>
+  <h2>Покупка NFT</h2>
+  <button onclick="buyNFT()">Купить</button>
+  <div id="status"></div>
+
+  <script>
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    const contractAddress = getParam("contract");
+    const price = getParam("price");
+    const abiEncoded = getParam("abi");
+    const abi = JSON.parse(decodeURIComponent(abiEncoded || "[]"));
+    const chain = getParam("chain") || "arbitrum";
+
+    async function buyNFT() {
+      const status = document.getElementById("status");
+
+      if (!window.ethereum) {
+        status.textContent = "❌ MetaMask не найден.";
+        return;
+      }
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        // Подключение к нужной сети (если надо)
+        const networkMap = {
+          arbitrum: '0xa4b1', // hex chainId
+        };
+
+        const targetChainId = networkMap[chain];
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+
+        if (targetChainId && currentChainId !== targetChainId) {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetChainId }],
+          });
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const tx = await contract.buy({
+          value: ethers.utils.parseEther(price)
+        });
+
+        status.textContent = `⏳ Транзакция отправлена: ${tx.hash}`;
+        await tx.wait();
+        status.textContent = "✅ NFT успешно куплен!";
+      } catch (error) {
+        console.error(error);
+        status.textContent = "❌ Ошибка: " + (error.data?.message || error.message);
+      }
+    }
+  </script>
 </body>
 </html>
